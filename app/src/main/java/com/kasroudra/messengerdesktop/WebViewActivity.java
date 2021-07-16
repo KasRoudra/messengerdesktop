@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.webkit.WebView;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.webkit.WebViewClient;
 
 public class WebViewActivity extends AppCompatActivity {

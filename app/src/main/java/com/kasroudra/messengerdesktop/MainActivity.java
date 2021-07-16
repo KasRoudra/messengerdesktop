@@ -26,6 +26,10 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
+import android.widget.ImageView;
+import android.content.Context; 
+import android.net.NetworkInfo;
+import android.net.ConnectivityManager;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,19 +58,54 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setAllowContentAccess(true);
         mWebview.getSettings().setDomStorageEnabled(true);
         mWebview.getSettings().setDisplayZoomControls(false);
-        String newUA= "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36";
+        String newUA= "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
         mWebview.getSettings().setUserAgentString(newUA);
-
 
         final Activity activity = this;
         mWebview.setWebViewClient(new WebViewClient() {
+        @Override 
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            if (url.contains("messenger.com")) {            
+                ConnectivityManager manager1 = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE); 
+                NetworkInfo iu = manager1.getActiveNetworkInfo(); 
+                boolean haSConnect = (iu!= null && iu.isConnected() && iu.isAvailable());
+                if (haSConnect) {
+                    return false;
+                }
+                else {
+                    splashLoad();
+                    return true;
+                }
+            }
+            else { 
+                try {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(Uri.parse(url));
+                    view.getContext().startActivity(intent);
+                    Toast.makeText(MainActivity.this.getApplicationContext(), "External link opening in browser", Toast.LENGTH_LONG).show();
+                    return true;
+                    } 
+                catch (Exception e) {
+                    Toast.makeText(MainActivity.this.getApplicationContext(), "Cannot Open Browser", Toast.LENGTH_LONG).show();
+                    return true; 
+                    }
+                }
+            }
+          
             public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
                 Toast.makeText(activity, description, Toast.LENGTH_SHORT).show();
             }
         });
-
-        mWebview .loadUrl("http://www.messenger.com");
-
+            ConnectivityManager manager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE); 
+            NetworkInfo i = manager.getActiveNetworkInfo(); 
+            boolean hasConnect = (i!= null && i.isConnected() && i.isAvailable());
+            if(hasConnect) {
+                mWebview.loadUrl("https://www.messenger.com/");
+            } 
+            else {
+                Toast.makeText(MainActivity.this.getApplicationContext(), "No Internet!", Toast.LENGTH_LONG).show();
+                splashLoad();
+            }
         String permission = Manifest.permission.CAMERA;
         int grant = ContextCompat.checkSelfPermission(this, permission);
         if (grant != PackageManager.PERMISSION_GRANTED) {
@@ -74,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
             permission_list[0] = permission;
             ActivityCompat.requestPermissions(this, permission_list, 1);
         }
-
 
         mWebview.setWebChromeClient(new WebChromeClient()
         {
@@ -163,5 +201,9 @@ public class MainActivity extends AppCompatActivity {
         }
         else
             Toast.makeText(MainActivity.this.getApplicationContext(), "Failed to Upload Image", Toast.LENGTH_LONG).show();
+    }     
+    private void splashLoad() {
+    Intent splashintent = new Intent(this, splash.class); 
+    startActivity(splashintent); 
     }
 }
